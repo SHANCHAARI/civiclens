@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+import MobileNav from "./MobileNav";
 
 export default function AppLayout({
   children,
@@ -38,13 +39,14 @@ export default function AppLayout({
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] bg-atmosphere">
       <Sidebar userRole={userRole} />
-      <div className="ml-[240px] transition-all duration-300">
+      <div className="md:ml-[240px] ml-0 transition-all duration-300 pb-16 md:pb-0">
         <Header
           user={session?.user as any}
           breadcrumbs={breadcrumbs}
         />
-        <main className="p-6">{children}</main>
+        <main className="p-4 md:p-6">{children}</main>
       </div>
+      <MobileNav userRole={userRole} />
     </div>
   );
 }
