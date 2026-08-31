@@ -1,0 +1,246 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== ENUMS ====================
+
+enum UserRole {
+  CITIZEN
+  AUTHORITY
+  ADMIN
+}
+
+enum IssueStatus {
+  REPORTED
+  AI_ANALYZING
+  VERIFIED
+  DUPLICATE_REVIEW
+  ASSIGNED
+  ACKNOWLEDGED
+  IN_PROGRESS
+  RESOLVED
+  CITIZEN_VERIFICATION
+  CLOSED
+  REJECTED
+  MERGED
+  REOPENED
+}
+
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum EvidenceType {
+  IMAGE
+  VIDEO
+}
+
+// ==================== MODELS ====================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  password      String
+  role          UserRole  @default(CITIZEN)
+  avatar        String?
+  phone         String?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([role])
+  @@index([email])
+}
+
+model IssueCategory {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  icon        String?
+  description String?
+  isActive    Boolean   @default(true)
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+
+  @@index([slug])
+}
+
+model Department {
+  id           String    @id @default(cuid())
+  name         String    @unique
+  description  String?
+  contactEmail String?
+  contactPhone String?
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+
+  @@index([name])
+}
+
+model Ward {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  zone      String?
+  city      String    @default("Hyderabad")
+  latitude  Float?
+  longitude Float?
+  boundary  String?
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+
+  @@index([zone])
+  @@index([city])
+}
+
+model Issue {
+  id             String      @id @default(cuid())
+  title          String
+  description    String
+  categorySlug   String
+  severity       String      @default("MEDIUM")
+  status         String      @default("REPORTED")
+  priorityScore  Float       @default(0)
+  reportCount    Int         @default(1)
+
+  latitude       Float
+  longitude      Float
+  address        String?
+  landmark       String?
+  wardId         String?
+
+  authorId       String
+  departmentId   String?
+  assigneeId     String?
+
+  aiConfidence   Float?
+  aiCategory     String?
+  aiSeverity     String?
+  aiDescription  String?
+  aiObservations String?
+  aiReasoning    String?
+  aiSuggestedDept String?
+  aiAnalyzedAt   DateTime?
+
+  metadata       String?
+  isDemo         Boolean     @default(false)
+  isPublic       Boolean     @default(true)
+  isDuplicate    Boolean     @default(false)
+  mergedIntoId   String?
+
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([status])
+  @@index([severity])
+  @@index([categorySlug])
+  @@index([latitude, longitude])
+  @@index([wardId])
+  @@index([departmentId])
+  @@index([priorityScore])
+  @@index([createdAt])
+  @@index([authorId])
+}
+
+model IssueEvidence {
+  id           String      @id @default(cuid())
+  issueId      String
+  uploaderId   String
+  fileUrl      String
+  fileName     String?
+  fileType     String      @default("IMAGE")
+  fileSize     Int?
+  isResolution Boolean     @default(false)
+  caption      String?
+  createdAt    DateTime    @default(now())
+
+  @@index([issueId])
+}
+
+model IssueStatusHistory {
+  id          String   @id @default(cuid())
+  issueId     String
+  changedById String
+  fromStatus  String
+  toStatus    String
+  note        String?
+  createdAt   DateTime @default(now())
+
+  @@index([issueId])
+  @@index([createdAt])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  issueId   String
+  userId    String
+  body      String
+  isPublic  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([issueId])
+}
+
+model SupportingReport {
+  id        String   @id @default(cuid())
+  issueId   String
+  userId    String
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@unique([issueId, userId])
+  @@index([issueId])
+}
+
+model CitizenVerification {
+  id        String   @id @default(cuid())
+  issueId   String
+  userId    String
+  verified  Boolean
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@unique([issueId, userId])
+  @@index([issueId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  body      String
+  issueId   String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id            String   @id @default(cuid())
+  actorId       String
+  action        String
+  entityType    String
+  entityId      String
+  previousValue String?
+  newValue      String?
+  metadata      String?
+  createdAt     DateTime @default(now())
+
+  @@index([actorId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@index([action])
+}
