@@ -11,10 +11,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="space-y-1.5">
         {label && (
-          <label
-            htmlFor={id}
-            className="block text-sm font-medium text-[var(--text-secondary)]"
-          >
+          <label htmlFor={id} className="block text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wider">
             {label}
           </label>
         )}
@@ -22,17 +19,17 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           id={id}
           className={cn(
-            "w-full h-10 px-3.5 rounded-xl text-sm",
-            "bg-[var(--input-bg)] border border-[var(--border)]",
+            "w-full h-10 px-3.5 rounded-lg text-sm",
+            "bg-[var(--bg-secondary)] border border-[var(--border)]",
             "text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)]",
-            "focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:border-transparent",
+            "focus:outline-none focus:border-[var(--accent-civic)] focus:ring-1 focus:ring-[var(--ring)]",
             "transition-all duration-200",
-            error && "border-red-500 focus:ring-red-500/40",
+            error && "border-[var(--accent-red)] focus:border-[var(--accent-red)] focus:ring-[var(--accent-red)]/30",
             className
           )}
           {...props}
         />
-        {error && <p className="text-xs text-red-500">{error}</p>}
+        {error && <p className="text-xs text-[var(--accent-red)]">{error}</p>}
       </div>
     );
   }

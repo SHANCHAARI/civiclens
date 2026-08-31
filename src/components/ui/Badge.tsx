@@ -7,44 +7,34 @@ interface BadgeProps {
   dot?: boolean;
 }
 
-const VARIANT_STYLES = {
-  default: "bg-[var(--bg-tertiary)] text-[var(--text-secondary)]",
-  success: "bg-green-500/10 text-green-500",
-  warning: "bg-yellow-500/10 text-yellow-500",
-  danger: "bg-red-500/10 text-red-500",
-  info: "bg-blue-500/10 text-blue-400",
+const VARIANTS = {
+  default: "bg-[var(--bg-surface)] text-[var(--text-secondary)] border border-[var(--border)]",
+  success: "bg-[var(--accent-civic-dim)] text-[var(--accent-civic)]",
+  warning: "bg-[var(--accent-amber-dim)] text-[var(--accent-amber)]",
+  danger: "bg-[var(--accent-red-dim)] text-[var(--accent-red)]",
+  info: "bg-[var(--accent-blue-dim)] text-[var(--accent-blue)]",
   purple: "bg-purple-500/10 text-purple-400",
 };
 
 const DOT_COLORS = {
   default: "bg-[var(--text-tertiary)]",
-  success: "bg-green-500",
-  warning: "bg-yellow-500",
-  danger: "bg-red-500",
-  info: "bg-blue-400",
+  success: "bg-[var(--accent-civic)]",
+  warning: "bg-[var(--accent-amber)]",
+  danger: "bg-[var(--accent-red)]",
+  info: "bg-[var(--accent-blue)]",
   purple: "bg-purple-400",
 };
 
-export default function Badge({
-  children,
-  variant = "default",
-  size = "sm",
-  dot = false,
-}: BadgeProps) {
+export default function Badge({ children, variant = "default", size = "sm", dot = false }: BadgeProps) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full font-medium",
-        VARIANT_STYLES[variant],
-        {
-          "px-2 py-0.5 text-[10px]": size === "sm",
-          "px-3 py-1 text-xs": size === "md",
-        }
+        "inline-flex items-center gap-1.5 rounded-full font-medium whitespace-nowrap",
+        VARIANTS[variant],
+        size === "sm" ? "px-2 py-0.5 text-[10px]" : "px-2.5 py-1 text-xs"
       )}
     >
-      {dot && (
-        <span className={cn("w-1.5 h-1.5 rounded-full", DOT_COLORS[variant])} />
-      )}
+      {dot && <span className={cn("w-1.5 h-1.5 rounded-full", DOT_COLORS[variant])} />}
       {children}
     </span>
   );

@@ -3,18 +3,13 @@ import "./globals.css";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 
 export const metadata: Metadata = {
-  title: "CivicLens — See a problem. Prove it. Fix it.",
-  description:
-    "CivicLens turns real-world civic problems into verified, prioritized, trackable action. Report issues, track resolutions, and hold your city accountable.",
+  title: "Civic Lens — See your city differently.",
+  description: "Civic Lens turns local problems into visible, trackable, actionable civic intelligence.",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" data-theme="dark" suppressHydrationWarning>
       <body>
         <AuthProvider>{children}</AuthProvider>
       </body>

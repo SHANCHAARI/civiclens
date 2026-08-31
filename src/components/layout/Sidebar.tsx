@@ -4,11 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard,
-  Map,
+  Compass,
   AlertTriangle,
+  Map,
   BarChart3,
-  Settings,
   Shield,
   ChevronLeft,
   ChevronRight,
@@ -25,12 +24,11 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: <LayoutDashboard size={20} /> },
-  { label: "Report Issue", href: "/report", icon: <AlertTriangle size={20} /> },
-  { label: "Civic Map", href: "/map", icon: <Map size={20} /> },
-  { label: "Analytics", href: "/analytics", icon: <BarChart3 size={20} /> },
-  { label: "Authority", href: "/authority", icon: <Shield size={20} />, roles: ["AUTHORITY", "ADMIN"] },
-  { label: "Admin", href: "/admin", icon: <Settings size={20} />, roles: ["ADMIN"] },
+  { label: "Discover", href: "/dashboard", icon: <Compass size={18} /> },
+  { label: "Report", href: "/report", icon: <AlertTriangle size={18} /> },
+  { label: "Map", href: "/map", icon: <Map size={18} /> },
+  { label: "Insights", href: "/analytics", icon: <BarChart3 size={18} /> },
+  { label: "Authority", href: "/authority", icon: <Shield size={18} />, roles: ["AUTHORITY", "ADMIN"] },
 ];
 
 export default function Sidebar({ userRole = "CITIZEN" }: { userRole?: string }) {
@@ -45,25 +43,25 @@ export default function Sidebar({ userRole = "CITIZEN" }: { userRole?: string })
     <aside
       className={cn(
         "fixed left-0 top-0 h-full z-40 flex flex-col",
-        "glass-strong border-r border-[var(--border)]",
+        "bg-[var(--bg-deep)] border-r border-[var(--border-subtle)]",
         "transition-all duration-300 ease-in-out",
-        collapsed ? "w-[68px]" : "w-[240px]"
+        collapsed ? "w-[60px]" : "w-[220px]"
       )}
     >
       {/* Logo */}
-      <div className="flex items-center gap-3 px-4 h-16 border-b border-[var(--border)]">
-        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--accent)] text-white shrink-0">
-          <Eye size={18} />
+      <div className="flex items-center gap-2.5 px-4 h-14 border-b border-[var(--border-subtle)]">
+        <div className="w-7 h-7 rounded-md bg-[var(--accent-civic)] flex items-center justify-center shrink-0">
+          <Eye size={14} className="text-[var(--text-inverse)]" />
         </div>
         {!collapsed && (
-          <span className="text-lg font-bold tracking-tight text-[var(--text-primary)]">
-            CivicLens
+          <span className="text-sm font-bold tracking-tight text-[var(--text-primary)] uppercase">
+            Civic Lens
           </span>
         )}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
         {filteredItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
           return (
@@ -71,10 +69,10 @@ export default function Sidebar({ userRole = "CITIZEN" }: { userRole?: string })
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
+                "flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150",
                 isActive
-                  ? "bg-[var(--accent-subtle)] text-[var(--accent)]"
-                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)]"
+                  ? "bg-[var(--accent-civic-dim)] text-[var(--accent-civic)]"
+                  : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]"
               )}
               title={collapsed ? item.label : undefined}
             >
@@ -86,14 +84,14 @@ export default function Sidebar({ userRole = "CITIZEN" }: { userRole?: string })
       </nav>
 
       {/* Footer */}
-      <div className="px-3 py-3 border-t border-[var(--border)] space-y-2">
-        <ThemeToggle className="w-full justify-start" />
+      <div className="px-2 py-2 border-t border-[var(--border-subtle)] space-y-1">
+        <ThemeToggle className="w-full justify-start h-8" />
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="flex items-center justify-center w-full p-2 rounded-xl text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition-colors"
+          className="flex items-center justify-center w-full h-8 rounded-lg text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] transition-colors"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </button>
       </div>
     </aside>

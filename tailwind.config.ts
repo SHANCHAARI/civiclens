@@ -6,47 +6,33 @@ const config: Config = {
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
-  darkMode: "class",
+  darkMode: ["class", '[data-theme="dark"]'],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["Inter", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+      },
       colors: {
         civic: {
-          50: "#eef7ff",
-          100: "#d9ecff",
-          200: "#bce0ff",
-          300: "#8eccff",
-          400: "#59b0ff",
-          500: "#338bff",
-          600: "#1a6af5",
-          700: "#1355e1",
-          800: "#1645b6",
-          900: "#183d8f",
-          950: "#132757",
+          DEFAULT: "var(--accent-civic)",
+          dim: "var(--accent-civic-dim)",
         },
-        severity: {
-          low: "#22c55e",
-          medium: "#eab308",
-          high: "#f97316",
-          critical: "#ef4444",
-        },
-        surface: {
-          light: "rgba(255, 255, 255, 0.7)",
-          dark: "rgba(15, 23, 42, 0.7)",
+        amber: {
+          DEFAULT: "var(--accent-amber)",
+          dim: "var(--accent-amber-dim)",
         },
       },
-      fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        mono: ["JetBrains Mono", "monospace"],
-      },
-      backdropBlur: {
-        xs: "2px",
+      borderRadius: {
+        sm: "var(--radius-sm)",
+        md: "var(--radius-md)",
+        lg: "var(--radius-lg)",
+        xl: "var(--radius-xl)",
       },
       animation: {
-        "fade-in": "fadeIn 0.5s ease-out",
-        "slide-up": "slideUp 0.4s ease-out",
-        "slide-down": "slideDown 0.3s ease-out",
-        "scale-in": "scaleIn 0.2s ease-out",
-        pulse: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "fade-in": "fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards",
+        "slide-up": "slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards",
+        "scale-in": "scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards",
+        "pulse-ring": "pulse-ring 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       },
       keyframes: {
         fadeIn: {
@@ -54,16 +40,16 @@ const config: Config = {
           "100%": { opacity: "1" },
         },
         slideUp: {
-          "0%": { opacity: "0", transform: "translateY(10px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
-        },
-        slideDown: {
-          "0%": { opacity: "0", transform: "translateY(-10px)" },
+          "0%": { opacity: "0", transform: "translateY(8px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
         scaleIn: {
-          "0%": { opacity: "0", transform: "scale(0.95)" },
+          "0%": { opacity: "0", transform: "scale(0.97)" },
           "100%": { opacity: "1", transform: "scale(1)" },
+        },
+        "pulse-ring": {
+          "0%": { transform: "scale(1)", opacity: "0.4" },
+          "100%": { transform: "scale(1.8)", opacity: "0" },
         },
       },
     },
