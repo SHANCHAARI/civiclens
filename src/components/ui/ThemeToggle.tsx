@@ -11,10 +11,10 @@ export default function ThemeToggle({ className }: { className?: string }) {
     const saved = localStorage.getItem("civiclens-theme");
     if (saved === "light") {
       setDark(false);
-      document.documentElement.classList.remove("dark");
+      document.documentElement.setAttribute("data-theme", "light");
     } else {
       setDark(true);
-      document.documentElement.classList.add("dark");
+      document.documentElement.setAttribute("data-theme", "dark");
     }
   }, []);
 
@@ -23,36 +23,36 @@ export default function ThemeToggle({ className }: { className?: string }) {
     const newDark = !dark;
     setDark(newDark);
     if (newDark) {
-      document.documentElement.classList.add("dark");
+      document.documentElement.setAttribute("data-theme", "dark");
       localStorage.setItem("civiclens-theme", "dark");
     } else {
-      document.documentElement.classList.remove("dark");
+      document.documentElement.setAttribute("data-theme", "light");
       localStorage.setItem("civiclens-theme", "light");
     }
-    setTimeout(() => document.documentElement.classList.remove("theme-transition"), 400);
+    setTimeout(() => document.documentElement.classList.remove("theme-transition"), 500);
   };
 
   return (
     <button
       onClick={toggle}
       className={cn(
-        "relative p-2 rounded-xl transition-all duration-200",
+        "relative w-10 h-10 rounded-lg flex items-center justify-center",
         "text-[var(--text-tertiary)] hover:text-[var(--text-primary)]",
-        "hover:bg-[var(--hover-bg)]",
+        "hover:bg-[var(--bg-elevated)] transition-all duration-300",
         className
       )}
       aria-label={dark ? "Switch to light theme" : "Switch to dark theme"}
     >
-      <div className="relative w-5 h-5">
+      <div className="relative w-4.5 h-4.5">
         <Sun
-          size={20}
+          size={16}
           className={cn(
             "absolute inset-0 transition-all duration-300",
             dark ? "rotate-0 scale-100 opacity-100" : "rotate-90 scale-0 opacity-0"
           )}
         />
         <Moon
-          size={20}
+          size={16}
           className={cn(
             "absolute inset-0 transition-all duration-300",
             !dark ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-0 opacity-0"

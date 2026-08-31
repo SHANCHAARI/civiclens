@@ -26,9 +26,9 @@ export default function AppLayout({
   if (status === "loading") {
     return (
       <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-3 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-[var(--text-tertiary)]">Loading CivicLens...</p>
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-[var(--accent-civic)] border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs text-[var(--text-tertiary)] uppercase tracking-wider">Loading</p>
         </div>
       </div>
     );
@@ -37,14 +37,11 @@ export default function AppLayout({
   const userRole = (session?.user as any)?.role || "CITIZEN";
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] bg-atmosphere">
+    <div className="min-h-screen bg-[var(--bg-primary)]">
       <Sidebar userRole={userRole} />
-      <div className="md:ml-[240px] ml-0 transition-all duration-300 pb-16 md:pb-0">
-        <Header
-          user={session?.user as any}
-          breadcrumbs={breadcrumbs}
-        />
-        <main className="p-4 md:p-6">{children}</main>
+      <div className="md:ml-[220px] ml-0 transition-all duration-300 pb-20 md:pb-0">
+        <Header user={session?.user as any} breadcrumbs={breadcrumbs} />
+        <main className="p-4 md:p-6 max-w-[1400px]">{children}</main>
       </div>
       <MobileNav userRole={userRole} />
     </div>

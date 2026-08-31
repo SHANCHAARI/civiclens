@@ -9,24 +9,9 @@ import Input from "@/components/ui/Input";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 
 const DEMO_USERS = [
-  {
-    label: "Citizen",
-    email: "citizen@demo.com",
-    icon: <User size={16} />,
-    desc: "Report issues, track progress",
-  },
-  {
-    label: "Authority",
-    email: "authority@demo.com",
-    icon: <Shield size={16} />,
-    desc: "Manage and resolve issues",
-  },
-  {
-    label: "Admin",
-    email: "admin@demo.com",
-    icon: <Settings size={16} />,
-    desc: "Full platform management",
-  },
+  { label: "Citizen", email: "citizen@demo.com", icon: <User size={16} />, desc: "Report and track" },
+  { label: "Authority", email: "authority@demo.com", icon: <Shield size={16} />, desc: "Manage issues" },
+  { label: "Admin", email: "admin@demo.com", icon: <Settings size={16} />, desc: "Full access" },
 ];
 
 export default function LoginPage() {
@@ -52,86 +37,52 @@ export default function LoginPage() {
         router.refresh();
       }
     } catch {
-      setError("An error occurred. Please try again.");
+      setError("An error occurred.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleLogin(email, password);
-  };
-
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] bg-atmosphere flex items-center justify-center p-6">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[var(--accent)] text-white flex items-center justify-center">
-              <Eye size={22} />
+    <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center p-6">
+      <div className="w-full max-w-sm">
+        <div className="flex items-center justify-between mb-12">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-[var(--accent-civic)] flex items-center justify-center">
+              <Eye size={16} className="text-[var(--text-inverse)]" />
             </div>
-            <span className="text-xl font-bold">CivicLens</span>
+            <span className="text-sm font-bold uppercase tracking-tight">Civic Lens</span>
           </div>
           <ThemeToggle />
         </div>
 
-        <div className="glass rounded-2xl p-8">
-          <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-2">Welcome back</h1>
-          <p className="text-sm text-[var(--text-secondary)] mb-6">
-            Sign in to continue to CivicLens
-          </p>
+        <h1 className="text-xl font-bold text-[var(--text-primary)] mb-1">Welcome back</h1>
+        <p className="text-sm text-[var(--text-tertiary)] mb-8">Sign in to your account</p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              label="Email"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <Input
-              label="Password"
-              type="password"
-              placeholder="••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+        <form onSubmit={(e) => { e.preventDefault(); handleLogin(email, password); }} className="space-y-4">
+          <Input label="Email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Input label="Password" type="password" placeholder="••••••" value={password} onChange={(e) => setPassword(e.target.value)} />
+          {error && <p className="text-xs text-[var(--accent-red)] bg-[var(--accent-red-dim)] px-3 py-2 rounded-lg">{error}</p>}
+          <Button type="submit" className="w-full" loading={loading}>
+            Sign In <ArrowRight size={14} />
+          </Button>
+        </form>
 
-            {error && (
-              <p className="text-sm text-red-500 bg-red-500/10 px-3 py-2 rounded-lg">
-                {error}
-              </p>
-            )}
-
-            <Button type="submit" className="w-full" loading={loading}>
-              Sign In <ArrowRight size={16} />
-            </Button>
-          </form>
-
-          <div className="mt-6 pt-6 border-t border-[var(--border)]">
-            <p className="text-xs text-[var(--text-tertiary)] mb-3 text-center">
-              Quick demo login
-            </p>
-            <div className="grid grid-cols-3 gap-2">
-              {DEMO_USERS.map((user) => (
-                <button
-                  key={user.email}
-                  onClick={() => handleLogin(user.email, "demo123")}
-                  disabled={loading}
-                  className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-[var(--border)] hover:border-[var(--accent)] hover:bg-[var(--accent-subtle)] transition-all duration-200 disabled:opacity-50"
-                >
-                  <div className="text-[var(--accent)]">{user.icon}</div>
-                  <span className="text-xs font-medium text-[var(--text-primary)]">
-                    {user.label}
-                  </span>
-                  <span className="text-[9px] text-[var(--text-tertiary)]">
-                    {user.desc}
-                  </span>
-                </button>
-              ))}
-            </div>
+        <div className="mt-8 pt-6 border-t border-[var(--border-subtle)]">
+          <p className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-3 text-center">Quick demo</p>
+          <div className="grid grid-cols-3 gap-2">
+            {DEMO_USERS.map((user) => (
+              <button
+                key={user.email}
+                onClick={() => handleLogin(user.email, "demo123")}
+                disabled={loading}
+                className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-[var(--border-subtle)] hover:border-[var(--accent-civic)] hover:bg-[var(--accent-civic-dim)] transition-all duration-200 disabled:opacity-40"
+              >
+                <div className="text-[var(--accent-civic)]">{user.icon}</div>
+                <span className="text-[11px] font-medium text-[var(--text-primary)]">{user.label}</span>
+                <span className="text-[9px] text-[var(--text-tertiary)]">{user.desc}</span>
+              </button>
+            ))}
           </div>
         </div>
       </div>
