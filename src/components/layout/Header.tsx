@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, ChevronRight, LogOut } from "lucide-react";
+import { ChevronRight, LogOut } from "lucide-react";
 import { signOut } from "next-auth/react";
+import NotificationBell from "./NotificationBell";
 
 interface HeaderProps {
   user?: {
@@ -15,14 +16,14 @@ interface HeaderProps {
 
 export default function Header({ user, breadcrumbs = [] }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-30 h-16 flex items-center justify-between px-6 glass border-b border-[var(--border)]">
-      <div className="flex items-center gap-2 text-sm">
-        <Link href="/dashboard" className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors">
+    <header className="sticky top-0 z-30 h-16 flex items-center justify-between px-4 md:px-6 glass border-b border-[var(--border)]">
+      <div className="flex items-center gap-2 text-sm overflow-x-auto">
+        <Link href="/dashboard" className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors whitespace-nowrap">
           Home
         </Link>
         {breadcrumbs.map((crumb, i) => (
-          <span key={i} className="flex items-center gap-2">
-            <ChevronRight size={14} className="text-[var(--text-tertiary)]" />
+          <span key={i} className="flex items-center gap-2 whitespace-nowrap">
+            <ChevronRight size={14} className="text-[var(--text-tertiary)] shrink-0" />
             {crumb.href ? (
               <Link href={crumb.href} className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors">
                 {crumb.label}
@@ -34,15 +35,12 @@ export default function Header({ user, breadcrumbs = [] }: HeaderProps) {
         ))}
       </div>
 
-      <div className="flex items-center gap-4">
-        <button className="relative p-2 rounded-xl text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition-colors">
-          <Bell size={20} />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-        </button>
+      <div className="flex items-center gap-3">
+        <NotificationBell />
 
         {user && (
           <div className="flex items-center gap-3">
-            <div className="text-right">
+            <div className="text-right hidden sm:block">
               <p className="text-sm font-medium text-[var(--text-primary)]">{user.name}</p>
               <p className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider">
                 {user.role}
