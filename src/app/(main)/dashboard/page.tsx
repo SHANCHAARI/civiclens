@@ -4,12 +4,11 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import AppLayout from "@/components/layout/AppLayout";
-import Card, { CardContent, CardHeader } from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import {
   AlertTriangle, CheckCircle2, MapPin, TrendingUp, ArrowRight,
-  Clock, Users, Eye, Trophy, Compass, ArrowUpRight,
+  Clock, Eye, ArrowUpRight, Compass, Trophy, Users,
 } from "lucide-react";
 import { timeAgo, SEVERITY_CONFIG } from "@/types";
 
@@ -29,8 +28,11 @@ export default function DashboardPage() {
         setStats(await s.json());
         const data = await i.json();
         setIssues(data.issues || []);
-      } catch (e) { console.error(e); }
-      finally { setLoading(false); }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
     }
     load();
   }, []);
@@ -40,10 +42,12 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <AppLayout breadcrumbs={[{ label: "Discover" }]}>
-        <div className="space-y-6 animate-pulse">
+        <div className="max-w-[1200px] mx-auto space-y-8">
           <div className="h-6 w-48 skeleton" />
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 skeleton rounded-xl" />)}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-24 skeleton rounded-xl" />
+            ))}
           </div>
           <div className="h-64 skeleton rounded-xl" />
         </div>
@@ -53,68 +57,126 @@ export default function DashboardPage() {
 
   return (
     <AppLayout breadcrumbs={[{ label: "Discover" }]}>
-      <div className="space-y-8 max-w-[1200px]">
+      <div className="max-w-[1200px] mx-auto space-y-10">
         {/* Welcome */}
         <div>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-tertiary)] mb-1">Overview</p>
-          <h1 className="text-xl font-bold text-[var(--text-primary)]">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--accent-civic)] mb-2 font-medium">
+            Overview
+          </p>
+          <h1 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] font-display leading-tight">
             Welcome back, {userName}
           </h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-2">
+            Your city, one signal at a time.
+          </p>
         </div>
 
-        {/* Stats grid */}
+        {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
             { label: "Total Reports", value: stats?.totalIssues || 0, icon: <AlertTriangle size={14} /> },
             { label: "Open Issues", value: stats?.openIssues || 0, icon: <Clock size={14} /> },
             { label: "Resolved", value: stats?.resolvedIssues || 0, icon: <CheckCircle2 size={14} /> },
-            { label: "Critical", value: stats?.criticalIssues || 0, icon: <AlertTriangle size={14} />, color: "text-[var(--accent-red)]" },
+            {
+              label: "Critical",
+              value: stats?.criticalIssues || 0,
+              icon: <AlertTriangle size={14} />,
+              color: "text-[var(--accent-red)]",
+            },
           ].map((m) => (
-            <div key={m.label} className="p-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-secondary)]">
+            <div
+              key={m.label}
+              className="p-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-secondary)]"
+            >
               <div className="flex items-center gap-1.5 text-[var(--text-tertiary)] mb-2">
                 {m.icon}
-                <span className="text-[10px] uppercase tracking-wider">{m.label}</span>
+                <span className="text-[10px] uppercase tracking-wider font-medium">
+                  {m.label}
+                </span>
               </div>
-              <p className={`text-2xl font-bold font-mono ${m.color || "text-[var(--text-primary)]"}`}>{m.value}</p>
+              <p
+                className={`text-2xl font-bold font-mono ${m.color || "text-[var(--text-primary)]"}`}
+              >
+                {m.value}
+              </p>
             </div>
           ))}
         </div>
 
-        {/* Quick actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {[
-            { href: "/report", label: "Report Issue", desc: "Capture evidence", icon: <AlertTriangle size={16} />, color: "text-[var(--accent-civic)]" },
-            { href: "/map", label: "Explore Map", desc: "See your area", icon: <MapPin size={16} />, color: "text-[var(--accent-blue)]" },
-            { href: "/analytics", label: "Insights", desc: "Civic intelligence", icon: <TrendingUp size={16} />, color: "text-[var(--accent-amber)]" },
-          ].map((action) => (
-            <Link key={action.href} href={action.href}>
-              <div className="p-4 rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-strong)] transition-all duration-200 cursor-pointer group flex items-center gap-3">
-                <div className={`p-2 rounded-lg bg-[var(--bg-elevated)] ${action.color}`}>{action.icon}</div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[var(--text-primary)]">{action.label}</p>
-                  <p className="text-[11px] text-[var(--text-tertiary)]">{action.desc}</p>
+        {/* Quick Actions */}
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-tertiary)] mb-4 font-medium">
+            Quick Actions
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {[
+              {
+                href: "/report",
+                label: "Report Issue",
+                desc: "Capture evidence",
+                icon: <AlertTriangle size={16} />,
+                color: "text-[var(--accent-civic)]",
+              },
+              {
+                href: "/map",
+                label: "Explore Map",
+                desc: "See your area",
+                icon: <MapPin size={16} />,
+                color: "text-[var(--accent-blue)]",
+              },
+              {
+                href: "/analytics",
+                label: "Insights",
+                desc: "Civic intelligence",
+                icon: <TrendingUp size={16} />,
+                color: "text-[var(--accent-amber)]",
+              },
+            ].map((action) => (
+              <Link key={action.href} href={action.href}>
+                <div className="p-4 rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-strong)] transition-all duration-200 cursor-pointer group flex items-center gap-3">
+                  <div className={`p-2 rounded-lg bg-[var(--bg-elevated)] ${action.color}`}>
+                    {action.icon}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-[var(--text-primary)]">
+                      {action.label}
+                    </p>
+                    <p className="text-[11px] text-[var(--text-tertiary)]">{action.desc}</p>
+                  </div>
+                  <ArrowUpRight
+                    size={14}
+                    className="text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)] transition-colors"
+                  />
                 </div>
-                <ArrowUpRight size={14} className="text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)] transition-colors" />
-              </div>
-            </Link>
-          ))}
+              </Link>
+            ))}
+          </div>
         </div>
 
-        {/* Recent issues */}
+        {/* Recent Signals */}
         <div>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-tertiary)] mb-0.5">Recent Activity</p>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-tertiary)] mb-1 font-medium">
+                Recent Activity
+              </p>
               <h2 className="text-sm font-semibold text-[var(--text-primary)]">Latest signals</h2>
             </div>
-            <Link href="/map" className="text-[11px] text-[var(--accent-civic)] hover:underline">View all →</Link>
+            <Link
+              href="/map"
+              className="text-[11px] text-[var(--accent-civic)] hover:underline flex items-center gap-1"
+            >
+              View all <ArrowRight size={10} />
+            </Link>
           </div>
 
           <div className="space-y-px rounded-xl overflow-hidden border border-[var(--border-subtle)]">
             {issues.length === 0 ? (
               <div className="p-8 text-center bg-[var(--bg-secondary)]">
                 <MapPin size={24} className="mx-auto text-[var(--text-tertiary)] mb-2" />
-                <p className="text-sm text-[var(--text-secondary)]">No signals yet. Be the first to report.</p>
+                <p className="text-sm text-[var(--text-secondary)]">
+                  No signals yet. Be the first to report.
+                </p>
               </div>
             ) : (
               issues.map((issue) => (
@@ -125,15 +187,29 @@ export default function DashboardPage() {
                 >
                   <div
                     className="w-1.5 h-8 rounded-full shrink-0"
-                    style={{ backgroundColor: SEVERITY_CONFIG[issue.severity]?.color || "var(--text-tertiary)" }}
+                    style={{
+                      backgroundColor:
+                        SEVERITY_CONFIG[issue.severity]?.color || "var(--text-tertiary)",
+                    }}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-medium text-[var(--text-primary)] truncate">{issue.title}</p>
+                    <p className="text-[13px] font-medium text-[var(--text-primary)] truncate">
+                      {issue.title}
+                    </p>
                     <p className="text-[11px] text-[var(--text-tertiary)]">
                       {issue.categorySlug.replace(/-/g, " ")} · {timeAgo(issue.createdAt)}
                     </p>
                   </div>
-                  <Badge variant={issue.severity === "CRITICAL" ? "danger" : issue.severity === "HIGH" ? "warning" : "info"} size="sm">
+                  <Badge
+                    variant={
+                      issue.severity === "CRITICAL"
+                        ? "danger"
+                        : issue.severity === "HIGH"
+                        ? "warning"
+                        : "info"
+                    }
+                    size="sm"
+                  >
                     {issue.severity}
                   </Badge>
                 </Link>
@@ -144,7 +220,9 @@ export default function DashboardPage() {
 
         {/* Achievements */}
         <div>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-tertiary)] mb-3">Achievements</p>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-tertiary)] mb-3 font-medium">
+            Achievements
+          </p>
           <div className="flex gap-2 flex-wrap">
             {[
               { title: "First Report", earned: true },

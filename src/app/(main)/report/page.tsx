@@ -4,33 +4,35 @@ import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import AppLayout from "@/components/layout/AppLayout";
 import Button from "@/components/ui/Button";
-import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
-import Badge from "@/components/ui/Badge";
 import {
-  Upload,
-  Camera,
-  MapPin,
-  Brain,
-  CheckCircle2,
-  ArrowRight,
-  ArrowLeft,
-  AlertTriangle,
-  Loader2,
-  FileImage,
-  X,
+  Camera, MapPin, Brain, CheckCircle2, ArrowRight, ArrowLeft,
+  AlertTriangle, Loader2, X, Upload, ChevronLeft, Eye, FileText,
 } from "lucide-react";
 import { CATEGORY_CONFIG, SEVERITY_CONFIG } from "@/types";
 
 const STEPS = [
-  { id: "upload", label: "Upload Evidence", icon: <Camera size={16} /> },
-  { id: "analyze", label: "AI Analysis", icon: <Brain size={16} /> },
-  { id: "category", label: "Confirm Category", icon: <CheckCircle2 size={16} /> },
-  { id: "location", label: "Location", icon: <MapPin size={16} /> },
-  { id: "details", label: "Details", icon: <AlertTriangle size={16} /> },
-  { id: "submit", label: "Submit", icon: <CheckCircle2 size={16} /> },
+  { id: "category", label: "What happened?" },
+  { id: "location", label: "Where is it?" },
+  { id: "evidence", label: "Show us" },
+  { id: "confirm", label: "Confirm" },
 ];
+
+const CATEGORY_ICONS: Record<string, string> = {
+  pothole: "🛣",
+  "road-damage": "🛣",
+  "broken-streetlight": "💡",
+  "garbage-waste": "🗑",
+  "water-leakage": "💧",
+  "drainage-problem": "💧",
+  "damaged-sidewalk": "🚶",
+  "fallen-tree": "🌳",
+  "traffic-signal-issue": "🚦",
+  "illegal-dumping": "🗑",
+  "public-infrastructure-damage": "🏗",
+  other: "📋",
+};
 
 export default function ReportPage() {
   const router = useRouter();
@@ -43,7 +45,7 @@ export default function ReportPage() {
   const [form, setForm] = useState({
     title: "",
     description: "",
-    categorySlug: "pothole",
+    categorySlug: "",
     severity: "MEDIUM" as string,
     latitude: 17.385,
     longitude: 78.4867,
@@ -56,47 +58,36 @@ export default function ReportPage() {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (ev) => {
-        setImagePreview(ev.target?.result as string);
-      };
+      reader.onload = (ev) => setImagePreview(ev.target?.result as string);
       reader.readAsDataURL(file);
     }
   }, []);
 
   const runAnalysis = async () => {
     setAnalyzing(true);
-    setStep(1);
+    await new Promise((r) => setTimeout(r, 2000));
 
-    // Simulate AI analysis with a delay
-    await new Promise((resolve) => setTimeout(resolve, 2500));
-
-    // Mock analysis result
     const categories = Object.keys(CATEGORY_CONFIG);
-    const randomCat = categories[Math.floor(Math.random() * categories.length)];
+    const selectedCat = form.categorySlug || categories[Math.floor(Math.random() * categories.length)];
     const severities = ["LOW", "MEDIUM", "HIGH", "CRITICAL"];
     const randomSev = severities[Math.floor(Math.random() * severities.length)];
 
     const mockAnalysis = {
-      category: CATEGORY_CONFIG[randomCat]?.name || "Other",
-      categorySlug: randomCat,
-      categoryConfidence: (0.75 + Math.random() * 0.23).toFixed(2),
+      category: CATEGORY_CONFIG[selectedCat]?.name || "Other",
+      categorySlug: selectedCat,
+      categoryConfidence: (0.78 + Math.random() * 0.2).toFixed(2),
       severity: randomSev,
       severityConfidence: (0.7 + Math.random() * 0.25).toFixed(2),
-      description: `AI-detected issue classified as ${CATEGORY_CONFIG[randomCat]?.name || "Other"}. Severity assessed as ${randomSev.toLowerCase()} based on visual evidence analysis.`,
-      observations: [
-        "Visual evidence analyzed successfully",
-        "Issue appears to be in a public area",
-        "Severity indicators detected",
-      ],
-      suggestedDepartment: "ROAD_INFRASTRUCTURE",
+      description: `Detected ${CATEGORY_CONFIG[selectedCat]?.name || "issue"} from visual evidence. Severity assessed as ${randomSev.toLowerCase()}.`,
+      observations: ["Visual evidence analyzed", "Public area detected", "Severity indicators found"],
     };
 
     setAnalysis(mockAnalysis);
     setForm((prev) => ({
       ...prev,
-      categorySlug: randomCat,
+      categorySlug: selectedCat,
       severity: randomSev,
-      title: `${CATEGORY_CONFIG[randomCat]?.name || "Issue"} reported`,
+      title: `${CATEGORY_CONFIG[selectedCat]?.name || "Issue"} reported`,
     }));
     setAnalyzing(false);
   };
@@ -104,16 +95,8 @@ export default function ReportPage() {
   const getCurrentPosition = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setForm((prev) => ({
-            ...prev,
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-          }));
-        },
-        () => {
-          // Use default position
-        }
+        (pos) => setForm((prev) => ({ ...prev, latitude: pos.coords.latitude, longitude: pos.coords.longitude })),
+        () => {}
       );
     }
   };
@@ -121,26 +104,19 @@ export default function ReportPage() {
   const handleSubmit = async () => {
     setSubmitting(true);
     setError("");
-
     try {
       const res = await fetch("/api/issues", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || "Failed to submit");
       }
-
       const issue = await res.json();
-      setStep(5);
-
-      // Redirect after a moment
-      setTimeout(() => {
-        router.push(`/issues/${issue.id}`);
-      }, 2000);
+      setStep(4);
+      setTimeout(() => router.push(`/issues/${issue.id}`), 3500);
     } catch (e: any) {
       setError(e.message || "Something went wrong");
     } finally {
@@ -148,274 +124,118 @@ export default function ReportPage() {
     }
   };
 
-  return (
-    <AppLayout breadcrumbs={[{ label: "Report Issue" }]}>
-      <div className="max-w-2xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-            Report an Issue
-          </h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">
-            Capture evidence. AI will analyze and categorize it automatically.
-          </p>
-        </div>
 
-        {/* Progress Steps */}
-        <div className="flex items-center gap-1 overflow-x-auto pb-2">
+
+  return (
+    <AppLayout breadcrumbs={[{ label: "Report" }]}>
+      <div className="max-w-2xl mx-auto">
+        {/* Progress Indicator */}
+        <div className="flex items-center gap-0 mb-10">
           {STEPS.map((s, i) => (
-            <div key={s.id} className="flex items-center">
-              <div
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  i === step
-                    ? "bg-[var(--accent)] text-white"
-                    : i < step
-                    ? "bg-green-500/10 text-green-500"
-                    : "bg-[var(--bg-tertiary)] text-[var(--text-tertiary)]"
-                }`}
-              >
-                {i < step ? <CheckCircle2 size={14} /> : s.icon}
-                <span className="hidden md:inline">{s.label}</span>
+            <div key={s.id} className="flex items-center flex-1">
+              <div className="flex items-center gap-2">
+                <div
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold transition-all duration-300 ${
+                    i < step
+                      ? "bg-[var(--accent-civic)] text-white"
+                      : i === step
+                      ? "bg-[var(--accent-civic-dim)] text-[var(--accent-civic)] border border-[var(--accent-civic)]/30"
+                      : "bg-[var(--bg-secondary)] text-[var(--text-tertiary)] border border-[var(--border)]"
+                  }`}
+                >
+                  {i < step ? <CheckCircle2 size={14} /> : i + 1}
+                </div>
+                <span
+                  className={`text-xs font-medium hidden md:block ${
+                    i <= step ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)]"
+                  }`}
+                >
+                  {s.label}
+                </span>
               </div>
               {i < STEPS.length - 1 && (
-                <div
-                  className={`w-6 h-px mx-1 ${
-                    i < step ? "bg-green-500" : "bg-[var(--border)]"
-                  }`}
-                />
+                <div className="flex-1 mx-3">
+                  <div
+                    className="h-px transition-all duration-500"
+                    style={{
+                      backgroundColor: i < step ? "var(--accent-civic)" : "var(--border)",
+                    }}
+                  />
+                </div>
               )}
             </div>
           ))}
         </div>
 
         {/* Step Content */}
-        <Card className="p-6">
-          {/* Step 0: Upload */}
+        <div className="animate-fade-in" key={step}>
+          {/* STEP 01 — What happened? */}
           {step === 0 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-1">
-                  Capture Evidence
-                </h2>
-                <p className="text-sm text-[var(--text-secondary)]">
-                  Upload a photo of the civic issue. AI will analyze it automatically.
+                <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--accent-civic)] mb-2 font-medium">
+                  Step 01
+                </p>
+                <h1 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] font-display leading-tight">
+                  What happened?
+                </h1>
+                <p className="text-sm text-[var(--text-secondary)] mt-2">
+                  Select the type of civic issue you&apos;ve observed.
                 </p>
               </div>
 
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className={`relative border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
-                  imagePreview
-                    ? "border-[var(--accent)] bg-[var(--accent-subtle)]"
-                    : "border-[var(--border)] hover:border-[var(--accent)] hover:bg-[var(--accent-subtle)]/50"
-                }`}
-              >
-                {imagePreview ? (
-                  <div className="relative">
-                    <img
-                      src={imagePreview}
-                      alt="Evidence"
-                      className="max-h-64 mx-auto rounded-xl object-contain"
-                    />
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setImagePreview(null);
-                      }}
-                      className="absolute top-2 right-2 p-1 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <div className="w-16 h-16 mx-auto rounded-2xl bg-[var(--accent-subtle)] text-[var(--accent)] flex items-center justify-center">
-                      <Upload size={28} />
-                    </div>
-                    <div>
-                      <p className="font-medium text-[var(--text-primary)]">
-                        Click to upload a photo
-                      </p>
-                      <p className="text-xs text-[var(--text-tertiary)] mt-1">
-                        JPG, PNG, or WebP. Max 10MB.
-                      </p>
-                    </div>
-                  </div>
-                )}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageSelect}
-                  className="hidden"
-                />
-              </div>
-
-              <div className="flex justify-end">
-                <Button
-                  onClick={runAnalysis}
-                  disabled={!imagePreview}
-                >
-                  Analyze with AI <Brain size={16} />
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 1: AI Analysis */}
-          {step === 1 && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-1">
-                  AI Analysis
-                </h2>
-                <p className="text-sm text-[var(--text-secondary)]">
-                  Analyzing your evidence...
-                </p>
-              </div>
-
-              {analyzing ? (
-                <div className="flex flex-col items-center py-12 space-y-4">
-                  <Loader2 size={40} className="text-[var(--accent)] animate-spin" />
-                  <p className="text-sm text-[var(--text-secondary)] animate-pulse">
-                    Analyzing evidence...
-                  </p>
-                  <div className="w-48 h-1.5 bg-[var(--bg-tertiary)] rounded-full overflow-hidden">
-                    <div className="h-full bg-[var(--accent)] rounded-full animate-pulse" style={{ width: "70%" }} />
-                  </div>
-                </div>
-              ) : analysis ? (
-                <div className="space-y-4">
-                  <div className="p-4 rounded-xl bg-green-500/5 border border-green-500/20">
-                    <div className="flex items-center gap-2 mb-2">
-                      <CheckCircle2 size={16} className="text-green-500" />
-                      <span className="text-sm font-medium text-green-500">
-                        Analysis Complete
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 rounded-xl bg-[var(--bg-tertiary)]/50">
-                      <p className="text-xs text-[var(--text-tertiary)] mb-1">Category</p>
-                      <p className="font-semibold text-[var(--text-primary)]">
-                        {analysis.category}
-                      </p>
-                      <p className="text-xs text-[var(--accent)]">
-                        {Math.round(analysis.categoryConfidence * 100)}% confidence
-                      </p>
-                    </div>
-                    <div className="p-4 rounded-xl bg-[var(--bg-tertiary)]/50">
-                      <p className="text-xs text-[var(--text-tertiary)] mb-1">Severity</p>
-                      <Badge
-                        variant={
-                          analysis.severity === "CRITICAL"
-                            ? "danger"
-                            : analysis.severity === "HIGH"
-                            ? "warning"
-                            : "info"
-                        }
-                        size="md"
-                      >
-                        {analysis.severity}
-                      </Badge>
-                      <p className="text-xs text-[var(--accent)] mt-1">
-                        {Math.round(analysis.severityConfidence * 100)}% confidence
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-xl bg-[var(--bg-tertiary)]/50">
-                    <p className="text-xs text-[var(--text-tertiary)] mb-2">Description</p>
-                    <p className="text-sm text-[var(--text-primary)]">
-                      {analysis.description}
-                    </p>
-                  </div>
-
-                  <div className="p-4 rounded-xl bg-[var(--bg-tertiary)]/50">
-                    <p className="text-xs text-[var(--text-tertiary)] mb-2">Observations</p>
-                    <ul className="space-y-1">
-                      {analysis.observations.map((obs: string, i: number) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-[var(--text-secondary)]">
-                          <span className="text-[var(--accent)] mt-0.5">•</span>
-                          {obs}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className="p-3 rounded-lg bg-[var(--accent-subtle)] text-xs text-[var(--accent)]">
-                    AI confidence is {Math.round(analysis.categoryConfidence * 100)}%.
-                    {analysis.categoryConfidence < 0.8
-                      ? " Human review recommended."
-                      : " Classification looks reliable."}
-                  </div>
-
-                  <div className="flex justify-between">
-                    <Button variant="ghost" onClick={() => setStep(0)}>
-                      <ArrowLeft size={16} /> Back
-                    </Button>
-                    <Button onClick={() => setStep(2)}>
-                      Continue <ArrowRight size={16} />
-                    </Button>
-                  </div>
-                </div>
-              ) : null}
-            </div>
-          )}
-
-          {/* Step 2: Category Confirmation */}
-          {step === 2 && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-1">
-                  Confirm Category
-                </h2>
-                <p className="text-sm text-[var(--text-secondary)]">
-                  AI suggested the category below. You can change it if needed.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {Object.entries(CATEGORY_CONFIG).map(([slug, config]) => (
                   <button
                     key={slug}
                     onClick={() => setForm((prev) => ({ ...prev, categorySlug: slug }))}
-                    className={`p-3 rounded-xl text-left text-sm transition-all ${
+                    className={`p-4 rounded-2xl text-left transition-all duration-200 border ${
                       form.categorySlug === slug
-                        ? "bg-[var(--accent-subtle)] border-2 border-[var(--accent)] text-[var(--accent)]"
-                        : "border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--accent)]"
+                        ? "border-[var(--accent-civic)] bg-[var(--accent-civic-dim)] shadow-[0_0_0_1px_var(--accent-civic)]/20"
+                        : "border-[var(--border-subtle)] bg-[var(--bg-secondary)] hover:border-[var(--border-strong)] hover:bg-[var(--bg-elevated)]"
                     }`}
                   >
-                    {config.name}
+                    <span className="text-2xl block mb-2">
+                      {CATEGORY_ICONS[slug] || "📋"}
+                    </span>
+                    <p
+                      className={`text-xs font-semibold ${
+                        form.categorySlug === slug
+                          ? "text-[var(--accent-civic)]"
+                          : "text-[var(--text-primary)]"
+                      }`}
+                    >
+                      {config.name}
+                    </p>
                   </button>
                 ))}
               </div>
 
-              <div className="flex justify-between">
-                <Button variant="ghost" onClick={() => setStep(1)}>
-                  <ArrowLeft size={16} /> Back
-                </Button>
-                <Button onClick={() => setStep(3)}>
-                  Continue <ArrowRight size={16} />
+              <div className="flex justify-end pt-2">
+                <Button onClick={() => setStep(1)} disabled={!form.categorySlug}>
+                  Continue <ArrowRight size={15} />
                 </Button>
               </div>
             </div>
           )}
 
-          {/* Step 3: Location */}
-          {step === 3 && (
+          {/* STEP 02 — Where is it? */}
+          {step === 1 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-1">
-                  Location
-                </h2>
-                <p className="text-sm text-[var(--text-secondary)]">
-                  Where is this issue? Use your current location or enter it manually.
+                <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--accent-civic)] mb-2 font-medium">
+                  Step 02
+                </p>
+                <h1 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] font-display leading-tight">
+                  Where is it?
+                </h1>
+                <p className="text-sm text-[var(--text-secondary)] mt-2">
+                  Pinpoint the location of the issue.
                 </p>
               </div>
 
               <Button variant="outline" onClick={getCurrentPosition} className="w-full">
-                <MapPin size={16} /> Use My Current Location
+                <MapPin size={15} /> Use My Current Location
               </Button>
 
               <div className="grid grid-cols-2 gap-4">
@@ -441,74 +261,184 @@ export default function ReportPage() {
 
               <Input
                 label="Address (optional)"
-                placeholder="e.g., 123 Main Street, near City Park"
+                placeholder="123 Main Street, near City Park"
                 value={form.address}
                 onChange={(e) => setForm((prev) => ({ ...prev, address: e.target.value }))}
               />
 
               <Input
                 label="Landmark (optional)"
-                placeholder="e.g., Near SBI Bank, opposite bus stop"
+                placeholder="Near SBI Bank, opposite bus stop"
                 value={form.landmark}
                 onChange={(e) => setForm((prev) => ({ ...prev, landmark: e.target.value }))}
               />
 
-              {/* Mini map preview */}
-              <div className="h-48 rounded-xl overflow-hidden border border-[var(--border)] relative">
-                <div className="w-full h-full bg-[var(--bg-tertiary)] flex items-center justify-center">
-                  <div className="text-center">
-                    <MapPin size={24} className="mx-auto text-[var(--accent)] mb-2" />
-                    <p className="text-xs text-[var(--text-tertiary)]">
-                      {form.latitude.toFixed(4)}, {form.longitude.toFixed(4)}
-                    </p>
-                  </div>
+              {/* Location Preview */}
+              <div className="h-44 rounded-2xl overflow-hidden border border-[var(--border-subtle)] bg-[var(--bg-secondary)] flex items-center justify-center relative">
+                <div className="text-center">
+                  <MapPin size={24} className="mx-auto text-[var(--accent-civic)] mb-2" />
+                  <p className="text-xs text-[var(--text-tertiary)] font-mono">
+                    {form.latitude.toFixed(4)}, {form.longitude.toFixed(4)}
+                  </p>
                 </div>
-                <div className="absolute top-2 left-2 glass rounded-lg px-2 py-1 text-[10px] text-[var(--text-tertiary)]">
+                <div className="absolute top-3 left-3 glass-elevated rounded-lg px-2 py-1 text-[10px] text-[var(--text-tertiary)]">
                   Location Preview
                 </div>
               </div>
 
-              <div className="flex justify-between">
-                <Button variant="ghost" onClick={() => setStep(2)}>
-                  <ArrowLeft size={16} /> Back
+              <div className="flex justify-between pt-2">
+                <Button variant="ghost" onClick={() => setStep(0)}>
+                  <ChevronLeft size={15} /> Back
                 </Button>
-                <Button onClick={() => setStep(4)}>
-                  Continue <ArrowRight size={16} />
+                <Button onClick={() => setStep(2)}>
+                  Continue <ArrowRight size={15} />
                 </Button>
               </div>
             </div>
           )}
 
-          {/* Step 4: Details */}
-          {step === 4 && (
+          {/* STEP 03 — Show us */}
+          {step === 2 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-1">
-                  Issue Details
-                </h2>
-                <p className="text-sm text-[var(--text-secondary)]">
-                  Provide a title, description, and severity level.
+                <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--accent-civic)] mb-2 font-medium">
+                  Step 03
+                </p>
+                <h1 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] font-display leading-tight">
+                  Show us
+                </h1>
+                <p className="text-sm text-[var(--text-secondary)] mt-2">
+                  Upload evidence and describe what you see.
                 </p>
               </div>
 
-              <Input
-                label="Title"
-                placeholder="Brief description of the issue"
-                value={form.title}
-                onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
-              />
+              {/* Image Upload */}
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className={`relative border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
+                  imagePreview
+                    ? "border-[var(--accent-civic)] bg-[var(--accent-civic-dim)]"
+                    : "border-[var(--border)] hover:border-[var(--accent-civic)] hover:bg-[var(--accent-civic-dim)]/30"
+                }`}
+              >
+                {imagePreview ? (
+                  <div className="relative">
+                    <img
+                      src={imagePreview}
+                      alt="Evidence"
+                      className="max-h-56 mx-auto rounded-xl object-contain"
+                    />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setImagePreview(null);
+                      }}
+                      className="absolute top-2 right-2 p-1.5 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+                    >
+                      <X size={14} />
+                    </button>
+                    {!analysis && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          runAnalysis();
+                        }}
+                        className="absolute bottom-2 right-2 px-3 py-1.5 rounded-lg glass-elevated text-xs font-medium text-[var(--accent-civic)] flex items-center gap-1.5"
+                      >
+                        <Brain size={12} /> Analyze with AI
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="w-14 h-14 mx-auto rounded-2xl bg-[var(--accent-civic-dim)] text-[var(--accent-civic)] flex items-center justify-center">
+                      <Camera size={26} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-[var(--text-primary)]">
+                        Tap to upload a photo
+                      </p>
+                      <p className="text-[11px] text-[var(--text-tertiary)] mt-1">
+                        JPG, PNG, or WebP · Max 10MB
+                      </p>
+                    </div>
+                  </div>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                  className="hidden"
+                />
+              </div>
 
-              <Textarea
-                label="Description"
-                placeholder="Describe the issue in detail. What do you see? How long has it been there? Is it getting worse?"
-                value={form.description}
-                onChange={(e) =>
-                  setForm((prev) => ({ ...prev, description: e.target.value }))
-                }
-              />
+              {/* AI Analysis Result */}
+              {analyzing && (
+                <div className="flex flex-col items-center py-8 space-y-3 animate-fade-in">
+                  <Loader2 size={28} className="text-[var(--accent-civic)] animate-spin" />
+                  <p className="text-xs text-[var(--text-secondary)]">
+                    Analyzing evidence...
+                  </p>
+                  <div className="w-40 h-1 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-[var(--accent-civic)] rounded-full"
+                      style={{ width: "70%", animation: "pulse 1.5s infinite" }}
+                    />
+                  </div>
+                </div>
+              )}
 
+              {analysis && !analyzing && (
+                <div className="p-4 rounded-2xl border border-[var(--accent-civic)]/20 bg-[var(--accent-civic-dim)] space-y-3 animate-fade-in">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 size={14} className="text-[var(--accent-civic)]" />
+                    <span className="text-xs font-medium text-[var(--accent-civic)]">
+                      Analysis complete
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-[10px] text-[var(--text-tertiary)]">Category</p>
+                      <p className="text-sm font-semibold text-[var(--text-primary)]">
+                        {analysis.category}
+                      </p>
+                      <p className="text-[10px] text-[var(--accent-civic)]">
+                        {Math.round(analysis.categoryConfidence * 100)}% confident
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-[var(--text-tertiary)]">Severity</p>
+                      <p className="text-sm font-semibold text-[var(--text-primary)]">
+                        {analysis.severity}
+                      </p>
+                      <p className="text-[10px] text-[var(--accent-civic)]">
+                        {Math.round(analysis.severityConfidence * 100)}% confident
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Title & Description */}
+              <div className="space-y-4">
+                <Input
+                  label="Title"
+                  placeholder="Brief description of the issue"
+                  value={form.title}
+                  onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
+                />
+                <Textarea
+                  label="Description (optional)"
+                  placeholder="What do you see? How long has it been there?"
+                  value={form.description}
+                  onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+                />
+              </div>
+
+              {/* Severity */}
               <div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-2">
                   Severity
                 </label>
                 <div className="grid grid-cols-4 gap-2">
@@ -516,10 +446,10 @@ export default function ReportPage() {
                     <button
                       key={sev}
                       onClick={() => setForm((prev) => ({ ...prev, severity: sev }))}
-                      className={`p-3 rounded-xl text-xs font-medium text-center transition-all ${
+                      className={`p-3 rounded-xl text-[11px] font-medium text-center transition-all border ${
                         form.severity === sev
-                          ? `${SEVERITY_CONFIG[sev].bgColor} ring-2 ring-current`
-                          : "border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--accent)]"
+                          ? `${SEVERITY_CONFIG[sev].bgColor} border-current`
+                          : "border-[var(--border)] text-[var(--text-tertiary)] hover:border-[var(--border-strong)]"
                       }`}
                     >
                       {SEVERITY_CONFIG[sev].label}
@@ -529,43 +459,142 @@ export default function ReportPage() {
               </div>
 
               {error && (
-                <p className="text-sm text-red-500 bg-red-500/10 px-3 py-2 rounded-lg">
+                <p className="text-xs text-[var(--accent-red)] bg-[var(--accent-red-dim)] px-3 py-2 rounded-lg">
                   {error}
                 </p>
               )}
 
-              <div className="flex justify-between">
-                <Button variant="ghost" onClick={() => setStep(3)}>
-                  <ArrowLeft size={16} /> Back
+              <div className="flex justify-between pt-2">
+                <Button variant="ghost" onClick={() => setStep(1)}>
+                  <ChevronLeft size={15} /> Back
                 </Button>
                 <Button
-                  onClick={handleSubmit}
-                  loading={submitting}
-                  disabled={!form.title || !form.description}
+                  onClick={() => setStep(3)}
+                  disabled={!form.title}
                 >
-                  Submit Report <CheckCircle2 size={16} />
+                  Review Report <ArrowRight size={15} />
                 </Button>
               </div>
             </div>
           )}
 
-          {/* Step 5: Success */}
-          {step === 5 && (
-            <div className="flex flex-col items-center py-12 space-y-4">
-              <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center">
-                <CheckCircle2 size={32} className="text-green-500" />
+          {/* STEP 04 — Confirm */}
+          {step === 3 && (
+            <div className="space-y-6">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--accent-civic)] mb-2 font-medium">
+                  Step 04
+                </p>
+                <h1 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] font-display leading-tight">
+                  Confirm
+                </h1>
+                <p className="text-sm text-[var(--text-secondary)] mt-2">
+                  Review your report before submitting.
+                </p>
               </div>
-              <h2 className="text-xl font-bold text-[var(--text-primary)]">
-                Issue Reported!
-              </h2>
-              <p className="text-sm text-[var(--text-secondary)] text-center max-w-sm">
-                Your report has been submitted and will be analyzed. You&apos;ll be
-                notified of updates.
-              </p>
-              <p className="text-xs text-[var(--text-tertiary)]">Redirecting...</p>
+
+              {/* Preview Card */}
+              <div className="p-5 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-secondary)] space-y-4">
+                {/* Category */}
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{CATEGORY_ICONS[form.categorySlug] || "📋"}</span>
+                  <div>
+                    <p className="text-[10px] text-[var(--text-tertiary)]">Category</p>
+                    <p className="text-sm font-semibold text-[var(--text-primary)]">
+                      {CATEGORY_CONFIG[form.categorySlug]?.name || "Other"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="h-px bg-[var(--border-subtle)]" />
+
+                {/* Title */}
+                <div>
+                  <p className="text-[10px] text-[var(--text-tertiary)] mb-1">Title</p>
+                  <p className="text-sm font-medium text-[var(--text-primary)]">{form.title}</p>
+                </div>
+
+                {form.description && (
+                  <div>
+                    <p className="text-[10px] text-[var(--text-tertiary)] mb-1">Description</p>
+                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                      {form.description}
+                    </p>
+                  </div>
+                )}
+
+                <div className="h-px bg-[var(--border-subtle)]" />
+
+                {/* Meta */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-center gap-2">
+                    <MapPin size={12} className="text-[var(--accent-civic)]" />
+                    <span className="text-[10px] text-[var(--text-tertiary)] font-mono">
+                      {form.latitude.toFixed(3)}, {form.longitude.toFixed(3)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle size={12} className="text-[var(--accent-amber)]" />
+                    <span className="text-[10px] text-[var(--text-tertiary)]">
+                      Severity: {form.severity}
+                    </span>
+                  </div>
+                </div>
+
+                {imagePreview && (
+                  <div className="rounded-xl overflow-hidden border border-[var(--border-subtle)]">
+                    <img src={imagePreview} alt="Evidence" className="w-full h-32 object-cover" />
+                  </div>
+                )}
+              </div>
+
+              {error && (
+                <p className="text-xs text-[var(--accent-red)] bg-[var(--accent-red-dim)] px-3 py-2 rounded-lg">
+                  {error}
+                </p>
+              )}
+
+              <div className="flex justify-between pt-2">
+                <Button variant="ghost" onClick={() => setStep(2)}>
+                  <ChevronLeft size={15} /> Back
+                </Button>
+                <Button onClick={handleSubmit} loading={submitting} disabled={!form.title}>
+                  <CheckCircle2 size={15} /> Submit Report
+                </Button>
+              </div>
             </div>
           )}
-        </Card>
+
+          {/* STEP 05 — Success */}
+          {step === 4 && (
+            <div className="flex flex-col items-center py-16 space-y-5 animate-fade-in">
+              <div className="w-16 h-16 rounded-full bg-[var(--accent-civic-dim)] flex items-center justify-center">
+                <CheckCircle2 size={32} className="text-[var(--accent-civic)]" />
+              </div>
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-[var(--text-primary)] font-display mb-2">
+                  Your voice is now on the map.
+                </h2>
+                <p className="text-sm text-[var(--text-secondary)] max-w-sm">
+                  Your report has been submitted and will be analyzed by civic intelligence.
+                  You&apos;ll be notified when the status changes.
+                </p>
+              </div>
+              <div className="flex items-center gap-3 text-xs text-[var(--text-tertiary)]">
+                <div className="flex items-center gap-1.5">
+                  <MapPin size={12} className="text-[var(--accent-civic)]" />
+                  <span>Location recorded</span>
+                </div>
+                <span>·</span>
+                <div className="flex items-center gap-1.5">
+                  <Brain size={12} className="text-[var(--accent-blue)]" />
+                  <span>AI analyzing</span>
+                </div>
+              </div>
+              <p className="text-xs text-[var(--text-tertiary)]">Redirecting to your issue...</p>
+            </div>
+          )}
+        </div>
       </div>
     </AppLayout>
   );
